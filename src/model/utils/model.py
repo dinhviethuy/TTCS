@@ -100,7 +100,8 @@ class NCF(nn.Module):
     # Chuyển sang tensor float
     y = torch.FloatTensor(y).to(self.device, non_blocking=True) if y is not None else None
 
-    return X_user, X_item, X_user_id, X_item_id, y
+    # Trả về theo đúng thứ tự (user_id, item_id, user_features, item_features)
+    return X_user_id, X_item_id, X_user, X_item, y
 
   def __init_weights(self) -> None:
     # Khởi tạo weights

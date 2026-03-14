@@ -1,6 +1,6 @@
 """
-API Endpoints for the recommender system
-- Note: Used streamlit instead of FastAPI for the final version
+Các endpoint API cho hệ gợi ý NCF.
+- Lưu ý: Bản cuối dùng Streamlit thay vì FastAPI, file này chỉ dùng để test API.
 """
 
 import os
@@ -15,9 +15,15 @@ from utils.model import NCF, __model_version__
 from utils.utils import Utils, cols_dict
 from utils.requests import Request
 
-app = FastAPI()
+app = FastAPI(title="API hệ gợi ý NCF", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Các file sẽ được lưu trữ trong cơ sở dữ liệu trong trường hợp thực tế
+# Trong thực tế, các file này sẽ được lưu trong cơ sở dữ liệu
 users_exp = pd.read_csv(abs_path + 'data/users_exp.csv').values
 users_imp = pd.read_csv(abs_path + 'data/users_imp.csv').values
 movies = pd.read_csv(abs_path + 'data/movies.csv')
@@ -32,40 +38,39 @@ model_imp.load_weights(abs_path + 'weights/implicit.pth', eval=True)
 
 @app.get("/")
 def root():
-  return {
-    "health": "tốt",
-    "model_version": __model_version__,
-    "version": "1.0.0"
-  }
+    return {
+        "suc_khoe": "tốt",
+        "phien_ban_mo_hinh": __model_version__,
+        "mo_ta": "API hệ gợi ý NCF đang chạy bình thường"
+    }
 
 @app.post("/recommend/explicit")
 def recommend_explicit(request: Request):
-  return Utils.pipeline(
-    request=request,
-    model=model_exp,
-    users=users_exp,
-    movies=movies,
-    movies_og=movies_og,
-    ratings=ratings,
-    weights=[model_exp.user_embedding_mlp.weight.data.cpu().numpy(), model_exp.user_embedding_mf.weight.data.cpu().numpy()],
-    mode='explicit'
-  )
+    return Utils.pipeline(
+            request=request,
+            model=model_exp,
+            users=users_exp,
+            movies=movies,
+            movies_og=movies_og,
+            ratings=ratings,
+            weights=[model_exp.user_embedding_mlp.weight.data.cpu().numpy(), model_exp.user_embedding_mf.weight.data.cpu().numpy()],
+            mode='explicit'
+        )
 
 @app.post("/recommend/implicit")
 def recommend_implicit(request: Request):
-  return Utils.pipeline(
-    request=request,
-    model=model_imp,
-    users=users_imp,
-    movies=movies,
-    movies_og=movies_og,
-    ratings=ratings,
-    weights=[model_imp.user_embedding_mlp.weight.data.cpu().numpy(), model_imp.user_embedding_mf.weight.data.cpu().numpy()],
-    mode='implicit'
-  )
+    return Utils.pipeline(
+        request=request,
+        model=model_imp,
+        users=users_imp,
+        movies=movies,
+        movies_og=movies_og,
+        ratings=ratings,
+        weights=[model_imp.user_embedding_mlp.weight.data.cpu().numpy(), model_imp.user_embedding_mf.weight.data.cpu().numpy()],
+        mode='implicit'
+    )
 
 @app.post("/recommend/item-to-item", status_code=501)
 def recommend_item_to_item():
-  return {
-    "message": "Chưa được triển khai"
-  }
+    ...
+    return {"message": "Tính năng này chưa được triển khai"}
