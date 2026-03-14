@@ -1,11 +1,16 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error, roc_auc_score
 
-from .utils import Utils
 import numpy as np
 from math import sqrt
+from .utils import Utils, EarlyStopping
+from typing import Literal
+
+__model_version__ = '1.0.2'
+
 from typing import Literal
 
 class NCF(nn.Module):
